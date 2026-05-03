@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VOCAB">
+<meta name="theme-color" content="#f7f4ef">
+<title>VOCAB</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: #f7f4ef; font-family: 'Epilogue', 'Apple SD Gothic Neo', sans-serif; color: #1a1412; min-height: 100vh; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  button:active { transform: scale(0.97); }
+
+.app { display: flex; flex-direction: column; align-items: center; padding: 0 20px 80px; min-height: 100vh; }
+.header { width: 100%; max-width: 440px; padding: 52px 0 18px; display: flex; align-items: center; justify-content: space-between; }
+.logo { font-size: 12px; font-weight: 800; letter-spacing: 0.2em; color: #b84a2e; text-transform: uppercase; }
+.sub { font-size: 12px; color: #aaa; }
+
+.card { width: 100%; max-width: 440px; background: #fff; border-radius: 22px; padding: 28px 24px; box-shadow: 0 2px 20px rgba(0,0,0,0.06); border: 1px solid #ede8e0; }
+
+/* HOME */
+.home-title { width: 100%; max-width: 440px; margin-bottom: 20px; }
+.home-title h1 { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 4px; font-family: ‘Playfair Display’, Georgia, serif; }
+.home-title p { font-size: 13px; color: #888; }
+.topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 440px; }
+.topic-btn { background: #fff; color: #1a1412; border: 1.5px solid #ede8e0; border-radius: 16px; padding: 18px 12px; font-size: 14px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: all 0.12s; }
+.topic-btn.selected { background: #b84a2e; color: #fff; border-color: #b84a2e; box-shadow: 0 4px 14px rgba(184,74,46,0.25); }
+.topic-btn .emoji { font-size: 26px; }
+.topic-btn .count { font-size: 11px; opacity: 0.6; }
+.start-btn { width: 100%; max-width: 440px; background: #b84a2e; color: #fff; border-radius: 14px; padding: 17px; font-size: 15px; font-weight: 700; margin-top: 10px; opacity: 0.4; transition: opacity 0.15s; }
+.start-btn.ready { opacity: 1; }
+
+/* PROGRESS BAR */
+.prog-row { width: 100%; max-width: 440px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.prog-label { font-size: 12px; color: #888; white-space: nowrap; }
+.prog-score { font-size: 12px; color: #b84a2e; font-weight: 700; white-space: nowrap; }
+.prog-bar { flex: 1; height: 5px; background: #ede8e0; border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: #b84a2e; border-radius: 4px; transition: width 0.3s; }
+
+/* QUIZ */
+.word-display { font-size: 44px; font-weight: 900; letter-spacing: -0.03em; font-family: ‘Playfair Display’, Georgia, serif; text-align: center; line-height: 1.1; margin: 8px 0 6px; }
+.word-hint { font-size: 13px; color: #bbb; text-align: center; margin-bottom: 20px; }
+.opt-btn { width: 100%; border-radius: 12px; padding: 14px 16px; font-size: 15px; font-weight: 500; text-align: left; margin-bottom: 8px; transition: all 0.12s; background: #faf8f5; border: 1.5px solid #ede8e0; color: #1a1412; }
+.opt-btn.correct { background: #e8f5e9; border-color: #66bb6a; color: #2e7d32; }
+.opt-btn.wrong { background: #fdecea; border-color: #ef5350; color: #c62828; }
+.opt-btn.reveal-correct { background: #e8f5e9; border-color: #66bb6a; color: #2e7d32; }
+.result-badge { display: inline-block; border-radius: 8px; padding: 4px 12px; font-size: 13px; font-weight: 700; margin-top: 4px; }
+.result-badge.ok { background: #e8f5e9; color: #2e7d32; }
+.result-badge.fail { background: #fdecea; color: #c62828; }
+.example-box { background: #fffbf5; border-left: 3px solid #b84a2e; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #555; line-height: 1.7; margin-top: 12px; }
+.next-btn { width: 100%; background: #1a1412; color: #fff; border-radius: 12px; padding: 15px; font-size: 14px; font-weight: 700; margin-top: 14px; }
+.ghost-btn { width: 100%; background: #fff; color: #1a1412; border: 1.5px solid #ede8e0; border-radius: 12px; padding: 15px; font-size: 14px; font-weight: 700; margin-top: 8px; }
+
+/* RESULT */
+.score-ring { width: 96px; height: 96px; border-radius: 50%; border: 3px solid #b84a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.score-num { font-size: 26px; font-weight: 900; color: #b84a2e; }
+.score-pct { font-size: 11px; color: #aaa; }
+.result-msg { font-size: 22px; font-weight: 800; margin-bottom: 4px; text-align: center; }
+.result-topic { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; }
+
+/* REVIEW */
+.review-label { font-size: 11px; color: #b84a2e; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+.review-korean { font-size: 20px; color: #444; margin: 14px 0 4px; font-weight: 600; }
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const WORD_DB = {
+  daily: [
+    { word: "grab", korean: "집다 / 잡아오다", example: "Can you grab me a coffee?" },
+    { word: "figure out", korean: "알아내다 / 해결하다", example: "I can't figure out how to use this." },
+    { word: "hang out", korean: "놀다 / 어울리다", example: "Want to hang out this weekend?" },
+    { word: "deal with", korean: "처리하다 / 다루다", example: "I have a lot to deal with today." },
+    { word: "head out", korean: "나가다 / 출발하다", example: "I'm going to head out now." },
+    { word: "catch up", korean: "따라잡다 / 근황 나누다", example: "We need to catch up sometime." },
+    { word: "run into", korean: "우연히 만나다", example: "I ran into my old friend at the store." },
+    { word: "bring up", korean: "꺼내다 / 언급하다", example: "Why did you bring that up?" },
+    { word: "end up", korean: "결국 ~하게 되다", example: "We ended up staying until midnight." },
+    { word: "look into", korean: "조사하다 / 알아보다", example: "I'll look into it for you." },
+    { word: "sort out", korean: "해결하다 / 정리하다", example: "Let's sort this out together." },
+    { word: "put off", korean: "미루다 / 연기하다", example: "Stop putting it off and just do it." },
+    { word: "come across", korean: "우연히 발견하다", example: "I came across this article online." },
+    { word: "go ahead", korean: "먼저 하다 / 진행하다", example: "Go ahead, I'm listening." },
+    { word: "take care of", korean: "처리하다 / 돌보다", example: "I'll take care of it, don't worry." },
+    { word: "show up", korean: "나타나다", example: "He didn't show up to the meeting." },
+    { word: "kick back", korean: "쉬다 / 편히 있다", example: "Just kick back and relax tonight." },
+    { word: "carry on", korean: "계속하다", example: "Sorry, carry on with what you were saying." },
+    { word: "hold on", korean: "잠깐 기다리다", example: "Hold on, let me check my phone." },
+    { word: "turn out", korean: "결국 ~이 되다 / 밝혀지다", example: "It turned out she was right." },
+    { word: "get around", korean: "돌아다니다 / 피해가다", example: "How do you get around the city?" },
+    { word: "wear out", korean: "닳다 / 지치게 하다", example: "These shoes are totally worn out." },
+    { word: "settle down", korean: "자리잡다 / 진정하다", example: "He finally settled down in Seoul." },
+    { word: "mix up", korean: "혼동하다 / 뒤섞다", example: "I always mix up their names." },
+    { word: "point out", korean: "지적하다 / 가리키다", example: "Can you point out where I went wrong?" },
+    { word: "give up", korean: "포기하다", example: "Don't give up — you're almost there." },
+    { word: "work out", korean: "잘 풀리다 / 운동하다", example: "I hope everything works out for you." },
+    { word: "cut down", korean: "줄이다", example: "I'm trying to cut down on sugar." },
+    { word: "get over", korean: "극복하다 / 회복하다", example: "It took me weeks to get over the cold." },
+    { word: "fall behind", korean: "뒤처지다", example: "I fell behind on my work." },
+  ],
+  emotion: [
+    { word: "frustrated", korean: "답답한 / 좌절한", example: "I'm so frustrated with this traffic." },
+    { word: "relieved", korean: "안도한", example: "I was so relieved to hear the good news." },
+    { word: "overwhelmed", korean: "압도된 / 벅찬", example: "I feel overwhelmed with everything going on." },
+    { word: "anxious", korean: "불안한", example: "She gets anxious before big presentations." },
+    { word: "thrilled", korean: "매우 신나는", example: "I'm absolutely thrilled about the trip." },
+    { word: "exhausted", korean: "완전히 지친", example: "I'm exhausted — I need to sleep." },
+    { word: "irritated", korean: "짜증난", example: "He was irritated by the constant noise." },
+    { word: "content", korean: "만족한", example: "I'm content with how things are going." },
+    { word: "devastated", korean: "망연자실한 / 너무 슬픈", example: "She was devastated when she heard the news." },
+    { word: "awkward", korean: "어색한 / 불편한", example: "That was such an awkward moment." },
+    { word: "jealous", korean: "질투하는", example: "I'm a little jealous of your vacation." },
+    { word: "confident", korean: "자신있는", example: "She walked in looking confident." },
+    { word: "nervous", korean: "긴장한", example: "I'm always nervous before interviews." },
+    { word: "guilty", korean: "죄책감을 느끼는", example: "I feel guilty for missing his call." },
+    { word: "disgusted", korean: "역겨운 / 불쾌한", example: "I was disgusted by his behavior." },
+    { word: "curious", korean: "호기심 있는", example: "I'm curious about what happened next." },
+    { word: "miserable", korean: "비참한", example: "I feel miserable when I'm sick." },
+    { word: "hopeful", korean: "희망에 찬", example: "I'm hopeful things will improve." },
+    { word: "proud", korean: "자랑스러운", example: "I'm so proud of what you've done." },
+    { word: "startled", korean: "깜짝 놀란", example: "The loud noise startled everyone." },
+    { word: "confused", korean: "혼란스러운", example: "I'm confused about what you mean." },
+    { word: "bitter", korean: "씁쓸한 / 원망스러운", example: "He's still bitter about the breakup." },
+    { word: "uneasy", korean: "불안한 / 불편한", example: "Something about this feels uneasy." },
+    { word: "moved", korean: "감동받은", example: "I was deeply moved by the speech." },
+    { word: "ashamed", korean: "부끄러운", example: "She felt ashamed of her reaction." },
+    { word: "eager", korean: "열정적인 / 간절한", example: "He's eager to start the new project." },
+    { word: "indifferent", korean: "무관심한", example: "He seemed totally indifferent to it." },
+    { word: "homesick", korean: "향수병인", example: "I get homesick when I travel too long." },
+    { word: "ecstatic", korean: "황홀한 / 너무 기쁜", example: "She was ecstatic when she got the job." },
+    { word: "drained", korean: "기력이 소진된", example: "I feel emotionally drained today." },
+  ],
+  opinion: [
+    { word: "reckon", korean: "생각하다 / ~인 것 같다", example: "I reckon it'll take about an hour." },
+    { word: "argue", korean: "주장하다", example: "Some people argue that it's not worth it." },
+    { word: "tend to", korean: "~하는 경향이 있다", example: "I tend to overthink things." },
+    { word: "assume", korean: "추정하다 / 가정하다", example: "Don't assume you know what I mean." },
+    { word: "convince", korean: "납득시키다", example: "You'll never convince me otherwise." },
+    { word: "admit", korean: "인정하다", example: "I have to admit, you were right." },
+    { word: "insist", korean: "주장하다 / 고집하다", example: "She insists it wasn't her fault." },
+    { word: "wonder", korean: "궁금하다", example: "I wonder if that's actually true." },
+    { word: "consider", korean: "고려하다", example: "Have you considered the other option?" },
+    { word: "suppose", korean: "~인 것 같다 / 추측하다", example: "I suppose you have a point." },
+    { word: "disagree", korean: "동의하지 않다", example: "I respectfully disagree with that." },
+    { word: "emphasize", korean: "강조하다", example: "I want to emphasize how important this is." },
+    { word: "doubt", korean: "의심하다", example: "I doubt he'll show up on time." },
+    { word: "imply", korean: "암시하다", example: "What are you implying?" },
+    { word: "honest", korean: "솔직한", example: "To be honest, I don't really care." },
+    { word: "reasonable", korean: "합리적인", example: "That sounds like a reasonable idea." },
+    { word: "naive", korean: "순진한", example: "It's naive to think it'll be easy." },
+    { word: "obvious", korean: "명백한", example: "Isn't it obvious what he's trying to do?" },
+    { word: "controversial", korean: "논란이 있는", example: "It's a controversial topic." },
+    { word: "harsh", korean: "가혹한 / 냉정한", example: "That's a bit harsh, don't you think?" },
+    { word: "exaggerate", korean: "과장하다", example: "You always exaggerate everything." },
+    { word: "fair", korean: "공정한", example: "That doesn't seem fair to me." },
+    { word: "biased", korean: "편향된", example: "The report seems a little biased." },
+    { word: "aware", korean: "인식하고 있는", example: "I'm aware of the risks involved." },
+    { word: "rational", korean: "이성적인", example: "Try to be rational about this." },
+    { word: "overrated", korean: "과대평가된", example: "I think that movie is overrated." },
+    { word: "justify", korean: "정당화하다", example: "How do you justify that decision?" },
+    { word: "pretend", korean: "~인 척하다", example: "Stop pretending you don't care." },
+    { word: "consistent", korean: "일관된", example: "You need to be more consistent." },
+    { word: "perspective", korean: "관점", example: "Try to see it from my perspective." },
+  ],
+  work: [
+    { word: "deadline", korean: "마감일", example: "The deadline is this Friday." },
+    { word: "productive", korean: "생산적인", example: "It was a really productive meeting." },
+    { word: "delegate", korean: "위임하다", example: "You need to learn to delegate tasks." },
+    { word: "collaborate", korean: "협력하다", example: "We need to collaborate on this project." },
+    { word: "follow up", korean: "후속 조치를 취하다", example: "I'll follow up with an email." },
+    { word: "priority", korean: "우선순위", example: "What's the priority right now?" },
+    { word: "feedback", korean: "피드백", example: "Can I get your feedback on this?" },
+    { word: "promote", korean: "승진시키다", example: "She got promoted last month." },
+    { word: "resign", korean: "사직하다", example: "He resigned without giving notice." },
+    { word: "overtime", korean: "초과 근무", example: "I've been working overtime all week." },
+    { word: "negotiate", korean: "협상하다", example: "We need to negotiate the contract." },
+    { word: "efficient", korean: "효율적인", example: "We need a more efficient process." },
+    { word: "flexible", korean: "유연한", example: "The schedule is pretty flexible." },
+    { word: "undermine", korean: "약화시키다 / 깎아내리다", example: "Don't undermine your coworker in public." },
+    { word: "proposal", korean: "제안서", example: "Did you review my proposal?" },
+    { word: "reliable", korean: "믿을 수 있는", example: "She's one of our most reliable employees." },
+    { word: "laid off", korean: "해고된", example: "He was laid off during the recession." },
+    { word: "brief", korean: "간단히 설명하다", example: "Let me brief you on the situation." },
+    { word: "workload", korean: "업무량", example: "My workload has doubled this month." },
+    { word: "initiative", korean: "주도권 / 자발적 행동", example: "Take the initiative and speak up." },
+    { word: "approve", korean: "승인하다", example: "The manager approved the budget." },
+    { word: "hands-on", korean: "직접 해보는 / 실무적인", example: "He's a very hands-on manager." },
+    { word: "accountability", korean: "책임감", example: "There's no accountability in this team." },
+    { word: "pitch", korean: "제안하다 / 발표하다", example: "She pitched the idea to the board." },
+    { word: "multitask", korean: "여러 일을 동시에 하다", example: "I'm not good at multitasking." },
+    { word: "strategy", korean: "전략", example: "We need a better marketing strategy." },
+    { word: "clarify", korean: "명확히 하다", example: "Can you clarify what you mean?" },
+    { word: "burnout", korean: "번아웃", example: "I'm experiencing serious burnout." },
+    { word: "revise", korean: "수정하다", example: "I need to revise this report." },
+    { word: "agenda", korean: "안건 / 일정", example: "What's on the agenda for today?" },
+  ],
+  travel: [
+    { word: "layover", korean: "경유 / 환승 대기", example: "We have a 3-hour layover in Tokyo." },
+    { word: "check in", korean: "체크인하다", example: "What time can we check in?" },
+    { word: "itinerary", korean: "여행 일정", example: "I haven't finalized the itinerary yet." },
+    { word: "currency", korean: "통화 / 화폐", example: "I need to exchange currency." },
+    { word: "accommodation", korean: "숙소", example: "Have you booked your accommodation?" },
+    { word: "luggage", korean: "수하물", example: "My luggage got lost at the airport." },
+    { word: "jet lag", korean: "시차 적응", example: "I'm still dealing with jet lag." },
+    { word: "off the beaten path", korean: "잘 알려지지 않은 곳", example: "I prefer off the beaten path destinations." },
+    { word: "customs", korean: "세관", example: "We had to go through customs." },
+    { word: "round trip", korean: "왕복 여행", example: "Is this ticket round trip?" },
+    { word: "overcharge", korean: "바가지 씌우다", example: "I think they overcharged me." },
+    { word: "scenic", korean: "경치 좋은", example: "The coastal road is very scenic." },
+    { word: "souvenir", korean: "기념품", example: "Don't forget to pick up some souvenirs." },
+    { word: "budget", korean: "예산", example: "We're traveling on a tight budget." },
+    { word: "landmark", korean: "랜드마크 / 명소", example: "The Eiffel Tower is a famous landmark." },
+    { word: "delay", korean: "지연", example: "The flight was delayed by two hours." },
+    { word: "navigate", korean: "길을 찾다", example: "I used my phone to navigate." },
+    { word: "explore", korean: "탐험하다 / 돌아다니다", example: "Let's explore the old town." },
+    { word: "backpack", korean: "배낭여행하다", example: "She backpacked through Europe alone." },
+    { word: "crowded", korean: "붐비는", example: "The market was really crowded." },
+    { word: "get lost", korean: "길을 잃다", example: "We got lost trying to find the hotel." },
+    { word: "time zone", korean: "시간대", example: "It's hard to adjust to a new time zone." },
+    { word: "authentic", korean: "진짜의 / 정통의", example: "I want to try authentic local food." },
+    { word: "visa", korean: "비자", example: "Do I need a visa to enter?" },
+    { word: "estimate", korean: "예상하다", example: "Can you estimate how long the ride takes?" },
+    { word: "transfer", korean: "환승하다", example: "We need to transfer at the next station." },
+    { word: "one-way", korean: "편도", example: "I bought a one-way ticket." },
+    { word: "fluent", korean: "유창한", example: "He's fluent in three languages." },
+    { word: "local", korean: "현지의 / 현지인", example: "Ask a local for recommendations." },
+    { word: "hostel", korean: "호스텔", example: "We stayed at a hostel to save money." },
+  ],
+  food: [
+    { word: "appetizer", korean: "전채 요리", example: "Should we order some appetizers?" },
+    { word: "portion", korean: "1인분 / 양", example: "The portions here are huge." },
+    { word: "bland", korean: "맛없는 / 싱거운", example: "The soup was a bit bland." },
+    { word: "marinated", korean: "재운 / 양념한", example: "The chicken was marinated overnight." },
+    { word: "craving", korean: "갈망 / 먹고 싶은 것", example: "I have a craving for pizza right now." },
+    { word: "substitute", korean: "대체하다 / 대체품", example: "Can I substitute the fries for a salad?" },
+    { word: "dine in", korean: "매장에서 먹다", example: "Are you dining in or taking out?" },
+    { word: "recommend", korean: "추천하다", example: "What do you recommend from the menu?" },
+    { word: "overcooked", korean: "너무 익힌", example: "The steak was overcooked." },
+    { word: "takeout", korean: "포장 음식", example: "Let's just order takeout tonight." },
+    { word: "complimentary", korean: "무료 제공되는", example: "Dessert is complimentary today." },
+    { word: "reservation", korean: "예약", example: "I made a reservation for 7 PM." },
+    { word: "refill", korean: "리필하다", example: "Can I get a refill on my water?" },
+    { word: "greasy", korean: "기름진", example: "The food was too greasy for me." },
+    { word: "savory", korean: "짭짤하고 맛있는", example: "I prefer savory food over sweet." },
+    { word: "leftover", korean: "남은 음식", example: "I'll pack up the leftovers." },
+    { word: "vegetarian", korean: "채식주의자 / 채식의", example: "Is there a vegetarian option?" },
+    { word: "ingredient", korean: "재료", example: "What are the main ingredients?" },
+    { word: "rich", korean: "진한 / 풍부한 맛의", example: "The sauce is very rich." },
+    { word: "allergic", korean: "알레르기가 있는", example: "I'm allergic to shellfish." },
+    { word: "crispy", korean: "바삭바삭한", example: "The chicken skin is perfectly crispy." },
+    { word: "mild", korean: "맵지 않은 / 순한", example: "I'd prefer something mild." },
+    { word: "bill", korean: "계산서", example: "Can we get the bill, please?" },
+    { word: "split", korean: "나누다 / 더치페이하다", example: "Should we split the bill?" },
+    { word: "well-done", korean: "완전히 익힌", example: "I'd like my steak well-done." },
+    { word: "medium-rare", korean: "반 정도 익힌", example: "I'll have mine medium-rare." },
+    { word: "seasonal", korean: "제철의", example: "This dish uses seasonal vegetables." },
+    { word: "on the house", korean: "무료 제공", example: "The drinks are on the house tonight." },
+    { word: "wrap up", korean: "포장하다 / 마무리하다", example: "Can you wrap up the rest to go?" },
+    { word: "appetizing", korean: "식욕을 돋우는", example: "That smells so appetizing." },
+  ],
+};
+
+const TOPICS = [
+  { id: "daily", label: "일상 대화", emoji: "💬" },
+  { id: "emotion", label: "감정 표현", emoji: "❤️" },
+  { id: "opinion", label: "의견 말하기", emoji: "💡" },
+  { id: "work", label: "직장/업무", emoji: "💼" },
+  { id: "travel", label: "여행", emoji: "✈️" },
+  { id: "food", label: "음식/식당", emoji: "🍜" },
+];
+
+const totalWords = Object.values(WORD_DB).flat().length;
+
+// State
+let state = {
+  screen: 'home',
+  topic: null,
+  quiz: [],
+  idx: 0,
+  chosen: null,
+  score: 0,
+  wrong: [],
+  reviewIdx: 0,
+  showEx: false,
+};
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function getOptions(correct, pool) {
+  const others = shuffle(pool.filter(w => w.korean !== correct)).slice(0, 3).map(w => w.korean);
+  return shuffle([correct, ...others]);
+}
+
+function prepareQuiz(topicId) {
+  const pool = WORD_DB[topicId];
+  return shuffle(pool).slice(0, 8).map(w => ({ ...w, options: getOptions(w.korean, pool) }));
+}
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (state.screen === 'home') app.innerHTML = renderHome();
+  else if (state.screen === 'quiz') app.innerHTML = renderQuiz();
+  else if (state.screen === 'result') app.innerHTML = renderResult();
+  else if (state.screen === 'review') app.innerHTML = renderReview();
+  attachEvents();
+}
+
+function renderHome() {
+  const topicBtns = TOPICS.map(t => `
+    <button class="topic-btn ${state.topic?.id === t.id ? 'selected' : ''}" data-action="selectTopic" data-id="${t.id}">
+      <span class="emoji">${t.emoji}</span>
+      <span>${t.label}</span>
+      <span class="count">${WORD_DB[t.id].length}개</span>
+    </button>
+  `).join('');
+
+  return `
+    <div class="header">
+      <span class="logo">VOCAB</span>
+      <span class="sub">COCA 기반 · ${totalWords}개</span>
+    </div>
+    <div class="home-title">
+      <h1>오늘 뭐 외울까?</h1>
+      <p>주제 선택 → 8문제 → 틀린 단어 복습</p>
+    </div>
+    <div class="topic-grid">${topicBtns}</div>
+    <button class="start-btn ${state.topic ? 'ready' : ''}" data-action="startQuiz">시작하기 →</button>
+  `;
+}
+
+function renderQuiz() {
+  const cur = state.quiz[state.idx];
+  const pct = (state.idx / state.quiz.length) * 100;
+
+  const opts = cur.options.map(o => {
+    let cls = 'opt-btn';
+    if (state.chosen !== null) {
+      if (o === cur.korean) cls += ' reveal-correct';
+      if (o === state.chosen && o !== cur.korean) cls += ' wrong';
+      if (o === state.chosen && o === cur.korean) cls = 'opt-btn correct';
+    }
+    return `<button class="${cls}" data-action="pick" data-opt="${o}" ${state.chosen ? 'disabled' : ''}>${o}</button>`;
+  }).join('');
+
+  const isRight = state.chosen === cur.korean;
+  const feedback = state.showEx ? `
+    <span class="result-badge ${isRight ? 'ok' : 'fail'}">${isRight ? '✓ 정답!' : `✗ 정답: ${cur.korean}`}</span>
+    <div class="example-box">💬 ${cur.example}</div>
+    <button class="next-btn" data-action="next">${state.idx + 1 >= state.quiz.length ? '결과 보기' : '다음 →'}</button>
+  ` : '';
+
+  return `
+    <div class="header">
+      <span class="logo">VOCAB</span>
+      <span class="sub">${state.topic.label}</span>
+    </div>
+    <div class="prog-row">
+      <span class="prog-label">${state.idx + 1} / ${state.quiz.length}</span>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <span class="prog-score">🔥 ${state.score}</span>
+    </div>
+    <div class="card">
+      <div class="word-display">${cur.word}</div>
+      <div class="word-hint">이 단어의 뜻은?</div>
+      ${opts}
+      ${feedback}
+    </div>
+  `;
+}
+
+function renderResult() {
+  const pct = Math.round((state.score / state.quiz.length) * 100);
+  const msg = pct === 100 ? '완벽해! 🎉' : pct >= 75 ? '잘했어! 👍' : pct >= 50 ? '조금 더 해보자 💪' : '다시 해보자 🔁';
+  const reviewBtn = state.wrong.length > 0
+    ? `<button class="ghost-btn" data-action="startReview">틀린 단어 복습 (${state.wrong.length}개) →</button>`
+    : '';
+  return `
+    <div class="header"><span class="logo">VOCAB</span></div>
+    <div class="card">
+      <div class="score-ring">
+        <span class="score-num">${state.score}/${state.quiz.length}</span>
+        <span class="score-pct">${pct}%</span>
+      </div>
+      <div class="result-msg">${msg}</div>
+      <div class="result-topic">${state.topic.label} 완료</div>
+      ${reviewBtn}
+      <button class="next-btn" data-action="retry">같은 주제 다시</button>
+      <button class="ghost-btn" data-action="goHome">다른 주제 선택</button>
+    </div>
+  `;
+}
+
+function renderReview() {
+  const w = state.wrong[state.reviewIdx];
+  return `
+    <div class="header">
+      <span class="logo">VOCAB</span>
+      <span class="sub">복습 ${state.reviewIdx + 1}/${state.wrong.length}</span>
+    </div>
+    <div class="card">
+      <div class="review-label">틀린 단어</div>
+      <div class="word-display">${w.word}</div>
+      <div class="review-korean">${w.korean}</div>
+      <div class="example-box">💬 ${w.example}</div>
+      <button class="next-btn" data-action="nextReview">${state.reviewIdx + 1 >= state.wrong.length ? '완료 → 홈' : '다음 →'}</button>
+    </div>
+  `;
+}
+
+function attachEvents() {
+  document.querySelectorAll('[data-action]').forEach(el => {
+    el.addEventListener('click', () => {
+      const action = el.dataset.action;
+      if (action === 'selectTopic') {
+        const t = TOPICS.find(t => t.id === el.dataset.id);
+        setState({ topic: t });
+      }
+      else if (action === 'startQuiz') {
+        if (!state.topic) return;
+        setState({ screen: 'quiz', quiz: prepareQuiz(state.topic.id), idx: 0, score: 0, wrong: [], chosen: null, showEx: false });
+      }
+      else if (action === 'pick') {
+        if (state.chosen !== null) return;
+        const opt = el.dataset.opt;
+        const cur = state.quiz[state.idx];
+        const correct = opt === cur.korean;
+        setState({ chosen: opt, showEx: true, score: correct ? state.score + 1 : state.score, wrong: correct ? state.wrong : [...state.wrong, cur] });
+      }
+      else if (action === 'next') {
+        if (state.idx + 1 >= state.quiz.length) setState({ screen: 'result' });
+        else setState({ idx: state.idx + 1, chosen: null, showEx: false });
+      }
+      else if (action === 'startReview') setState({ screen: 'review', reviewIdx: 0 });
+      else if (action === 'retry') setState({ screen: 'quiz', quiz: prepareQuiz(state.topic.id), idx: 0, score: 0, wrong: [], chosen: null, showEx: false });
+      else if (action === 'goHome') setState({ screen: 'home' });
+      else if (action === 'nextReview') {
+        if (state.reviewIdx + 1 >= state.wrong.length) setState({ screen: 'home' });
+        else setState({ reviewIdx: state.reviewIdx + 1 });
+      }
+    });
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
